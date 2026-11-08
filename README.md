@@ -195,3 +195,7 @@ docs/screenshots/        images used in this README
 To add a check type: add a value to `Service.CheckType`, write a function in `monitor/checks.py` that returns
 `""` when healthy or a short reason when not, register it in `_CHECKS`, and add a label in `monitor/api.py`.
 An import-time assertion fails if a type has no implementation.
+
+## License
+
+[MIT](LICENSE) © 2026 Mohammad Zarif
