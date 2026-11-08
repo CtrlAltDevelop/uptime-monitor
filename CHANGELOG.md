@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-08
+
+First stable release. Everything under 0.1.0 plus the following.
+
 ### Added
 - Docker support: `Dockerfile` and `compose.yaml` that run the web server and the check worker as two containers
   sharing one data volume, with a health check and a non-root user.
