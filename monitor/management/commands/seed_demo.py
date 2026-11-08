@@ -20,7 +20,7 @@ DNS_SERVERS = [
 ]
 DNS_LOOKUPS = ["google.com", "github.com", "cloudflare.com", "wikipedia.org"]
 # These sites answer scripted HTTP requests with 403, so only their HTTPS port is probed.
-BOT_BLOCKED = {"npmjs.com", "stackoverflow.com", "nytimes.com"}
+BOT_BLOCKED = {"npmjs.com", "stackoverflow.com", "nytimes.com", "reddit.com"}
 PING_HOSTS = ["8.8.8.8", "1.1.1.1", "9.9.9.9", "github.com", "cloudflare.com"]
 
 

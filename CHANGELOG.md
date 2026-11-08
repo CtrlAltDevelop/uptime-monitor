@@ -15,6 +15,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `.env.example` and `make env`, which creates `.env` with a generated `SECRET_KEY`.
 - WhiteNoise, so static files (the admin theme) are served without a separate web server.
 
+- Production-like stack in `compose.production.yaml`: PostgreSQL, web, worker and a Caddy reverse proxy with
+  automatic HTTPS. `make prod-up`, `prod-down`, `prod-logs`, `prod-seed`, ... manage it.
+- PostgreSQL support (`POSTGRES_HOST` and friends) and an `HTTPS=1` mode for running behind a TLS proxy.
+- `manage.py seed_realistic`: demo services plus 30 days of realistic history with outages, flaky services and
+  four that are really failing. Only demo services are touched.
+
+### Fixed
+- The container health check now sends a valid `Host` header, so `web` becomes healthy when `ALLOWED_HOSTS` lists
+  only a real domain (previously Django answered 400 and the stack never came up).
+
 ### Changed
 - Dependencies are managed with [uv](https://docs.astral.sh/uv/): `pyproject.toml` and `uv.lock` replace
   `requirements.txt`.

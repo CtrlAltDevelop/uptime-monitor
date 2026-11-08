@@ -64,6 +64,8 @@ make docker-superuser # create your admin login
 make docker-seed      # optional: 50 services that monitor well-known public hosts
 ```
 
+For a fuller picture, `seed_realistic` (below) adds a few failing services and 30 days of history.
+
 Open <http://localhost:8000/> (status page) and <http://localhost:8000/admin/> (admin).
 `compose.yaml` runs two containers, `web` (gunicorn) and `worker` (the health checks), which share one data volume,
 so your database survives `make down` and image rebuilds. Change the published port with `PORT` in `.env`.
@@ -96,6 +98,42 @@ The `make` targets set `DEBUG=1` for you. Without make, use
    Fields that don't apply to the chosen type are ignored.
 3. Within one interval it appears on the status page.
 
+## Realistic demo environment
+
+`seed_realistic` creates the demo services plus **30 days of believable history**: most services are rock solid,
+some have short outages, a few are flaky, and four are down right now (a refused port, a timing-out host and two
+bad TLS certificates). The failing ones fail for real when the worker checks them, so the data stays consistent
+with live results. Only the demo services are touched; anything you created yourself is left alone.
+
+```bash
+make seed-realistic                 # local
+make prod-seed                      # inside the production-like stack
+docker compose exec web python manage.py seed_realistic --days 60   # any other stack
+```
+
+## Production-like stack (PostgreSQL + HTTPS)
+
+`compose.production.yaml` adds PostgreSQL and a [Caddy](https://caddyserver.com/) reverse proxy that handles HTTPS
+automatically (Let's Encrypt for a real domain, its own local CA for `status.localhost`). Only Caddy is published;
+the app runs with `HTTPS=1` (secure cookies, HTTPS redirect, HSTS).
+
+```bash
+make prod-up          # creates .env with random SECRET_KEY / POSTGRES_PASSWORD, builds, starts everything
+make prod-superuser
+make prod-seed        # optional: realistic demo data
+```
+
+Then open <https://status.localhost/>. Your browser will warn about the certificate until you trust Caddy's local
+root CA:
+
+```bash
+docker compose -f compose.yaml -f compose.production.yaml cp caddy:/data/caddy/pki/authorities/local/root.crt ./caddy-root.crt
+```
+
+and add that file to your system trust store. On a real server, set `SITE_ADDRESS`, `ALLOWED_HOSTS` and
+`CSRF_TRUSTED_ORIGINS` in `.env` to your domain and keep ports 80 and 443; Caddy then gets a public certificate
+by itself. If you change `HTTP_PORT`/`HTTPS_PORT` for testing, include the port in `CSRF_TRUSTED_ORIGINS`.
+
 ## Configuration
 
 All settings are environment variables.
@@ -107,6 +145,8 @@ All settings are environment variables.
 | `ALLOWED_HOSTS` | `localhost,127.0.0.1` | comma-separated host names |
 | `CSRF_TRUSTED_ORIGINS` | none | comma-separated origins, e.g. `https://status.example.com` (needed behind HTTPS proxies) |
 | `DB_PATH` | `./db.sqlite3` | SQLite database file |
+| `POSTGRES_HOST` | none | when set, PostgreSQL is used instead of SQLite (with `POSTGRES_PASSWORD`, and optional `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PORT`) |
+| `HTTPS` | off | set to `1` behind an HTTPS reverse proxy: trusts `X-Forwarded-Proto`, secure cookies, HTTPS redirect, HSTS |
 | `TIME_ZONE` | `Asia/Tehran` | used for the daily history buckets and the admin |
 | `RESULT_RETENTION_DAYS` | `90` | raw check results older than this are deleted |
 
@@ -203,7 +243,8 @@ seed and the public API, including a test that sensitive values never leak.
 
 ```
 config/                  Django project (settings, urls, wsgi)
-compose.yaml, Dockerfile web + worker containers
+compose.yaml, Dockerfile web + worker containers (SQLite)
+compose.production.yaml  adds PostgreSQL + Caddy HTTPS; Caddyfile
 Makefile                 development and Docker shortcuts (run `make help`)
 monitor/
   models.py              Category, Service, CheckResult
@@ -211,7 +252,7 @@ monitor/
   api.py                 public /api/status (Django Ninja)
   admin.py               Unfold admin classes and status badges
   dashboard.py           context for the admin home page
-  management/commands/   run_checks (worker), seed_demo
+  management/commands/   run_checks (worker), seed_demo, seed_realistic
   templates/monitor/     public status page
   static/monitor/        admin glass theme
 templates/admin/         admin home page template

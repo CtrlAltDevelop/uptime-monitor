@@ -12,6 +12,7 @@ dependencies = [
     "certifi",
     "gunicorn>=23",
     "whitenoise>=6.7",
+    "psycopg[binary]>=3.2",
 ]
 
 [tool.uv]

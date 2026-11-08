@@ -63,6 +63,28 @@ DATABASES = {
         "NAME": Path(os.environ.get("DB_PATH", BASE_DIR / "db.sqlite3")),
     }
 }
+# PostgreSQL instead of SQLite when POSTGRES_HOST is set (used by compose.production.yaml).
+if os.environ.get("POSTGRES_HOST"):
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DB", "uptime"),
+        "USER": os.environ.get("POSTGRES_USER", "uptime"),
+        "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+        "HOST": os.environ["POSTGRES_HOST"],
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        "CONN_MAX_AGE": 60,
+    }
+
+# HTTPS=1: the site is served over HTTPS by a reverse proxy that sets X-Forwarded-Proto.
+if os.environ.get("HTTPS", "") == "1":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 LANGUAGE_CODE = "en"
 TIME_ZONE = os.environ.get("TIME_ZONE", "Asia/Tehran")

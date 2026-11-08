@@ -5,6 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
+from django.db.models import OuterRef, Subquery
 from django.test import TestCase
 
 from .checks import run_check
@@ -136,3 +137,27 @@ class MonitorTests(TestCase):
 
     def test_dashboard_renders(self) -> None:
         self.assertEqual(self.client.get("/").status_code, 200)
+
+    def test_seed_realistic_builds_consistent_history(self) -> None:
+        mine = self._svc(name="My own service", check_type="tcp", target="127.0.0.1", port=1)
+        CheckResult.objects.create(service=mine, is_up=True, latency_ms=1)
+        call_command("seed_realistic", "--days", "2")
+        self.assertEqual(mine.results.count(), 1)  # user services keep their real results
+        first = CheckResult.objects.count()
+        call_command("seed_realistic", "--days", "2")  # replaces results instead of piling up
+        self.assertEqual(CheckResult.objects.count(), first)
+        self.assertEqual(mine.results.count(), 1)
+
+        latest = CheckResult.objects.filter(service=OuterRef("pk")).order_by("-checked_at")
+        down_now = set(
+            Service.objects.exclude(pk=mine.pk)
+            .annotate(up=Subquery(latest.values("is_up")[:1]))
+            .filter(up=False)
+            .values_list("name", flat=True)
+        )
+        self.assertEqual(
+            down_now,
+            {"Billing API (staging)", "Legacy FTP", "Certificate expired.badssl.com", "Certificate wrong.host.badssl.com"},
+        )
+        oldest = CheckResult.objects.order_by("checked_at").first()
+        self.assertGreaterEqual((CheckResult.objects.order_by("-checked_at").first().checked_at - oldest.checked_at).days, 1)

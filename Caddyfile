@@ -1,0 +1,10 @@
+# Caddy obtains and renews certificates automatically for a real domain (Let's Encrypt).
+# For localhost-style names such as status.localhost it issues a certificate from its own local CA.
+{$SITE_ADDRESS:status.localhost} {
+	encode zstd gzip
+	reverse_proxy web:8000
+
+	header {
+		-Server
+	}
+}
