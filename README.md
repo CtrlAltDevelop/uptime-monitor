@@ -54,28 +54,40 @@ Every check has a per-service **interval** (minimum 10 s) and **timeout**. HTTPS
 
 ## Quick start
 
-Requires Python 3.10+ (developed on 3.14).
+### With Docker (recommended)
+
+Requires Docker with the Compose plugin.
+
+```bash
+make up               # creates .env with a generated SECRET_KEY, builds the image, starts web + worker
+make docker-superuser # create your admin login
+make docker-seed      # optional: 50 services that monitor well-known public hosts
+```
+
+Open <http://localhost:8000/> (status page) and <http://localhost:8000/admin/> (admin).
+`compose.yaml` runs two containers, `web` (gunicorn) and `worker` (the health checks), which share one data volume,
+so your database survives `make down` and image rebuilds. Change the published port with `PORT` in `.env`.
+Run `make help` to list every shortcut.
+
+### Locally with uv
+
+Requires [uv](https://docs.astral.sh/uv/) (it installs Python for you) and Python 3.10+.
 
 ```bash
 git clone <your-fork-url> uptime-monitor && cd uptime-monitor
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-
-export DEBUG=1                              # local development only, see "Configuration" for production
-.venv/bin/python manage.py migrate
-.venv/bin/python manage.py createsuperuser
-.venv/bin/python manage.py seed_demo        # optional: 50 services that monitor well-known public hosts
-
-.venv/bin/python manage.py runserver        # terminal 1: status page at /, admin at /admin/
-.venv/bin/python manage.py run_checks       # terminal 2: the background worker
+make install      # uv sync
+make migrate
+make superuser
+make seed         # optional demo data
+make run          # terminal 1: status page at /, admin at /admin/
+make worker       # terminal 2: the background worker
 ```
 
-Open <http://localhost:8000/> for the status page and <http://localhost:8000/admin/> to manage services.
-Results appear as soon as the worker has completed its first cycle.
+The `make` targets set `DEBUG=1` for you. Without make, use
+`DEBUG=1 uv run python manage.py <command>`.
 
-> **The worker is a separate process.** The web server only reads results; nothing is checked unless
-> `manage.py run_checks` is running. `manage.py run_checks --once` checks every active service once and exits,
-> which is handy for cron jobs and debugging.
+> **The worker is a separate process.** The web server only reads results; nothing is checked unless the worker is
+> running. `make check-once` checks every active service once and exits, which is handy for cron jobs and debugging.
 
 ### Adding your first service
 
@@ -130,23 +142,29 @@ All settings are environment variables.
 
 ## Deploying
 
-Run **two processes** against the same database, plus a reverse proxy:
+The simplest route is the included Compose file: put it on a server, run `make up`, and put a reverse proxy with
+HTTPS in front of port 8000. Set these in `.env` first:
+
+```bash
+ALLOWED_HOSTS=status.example.com
+CSRF_TRUSTED_ORIGINS=https://status.example.com
+```
+
+Static files (the admin theme) are served by WhiteNoise, so no extra web server is needed for them.
+
+Without Docker, run **two processes** against the same database:
 
 ```bash
 export SECRET_KEY='<long random string>' ALLOWED_HOSTS=status.example.com \
        CSRF_TRUSTED_ORIGINS=https://status.example.com DB_PATH=/var/lib/uptime/db.sqlite3
 
-.venv/bin/python manage.py migrate
-.venv/bin/python manage.py collectstatic --noinput
+uv sync --no-dev
+uv run python manage.py migrate
+uv run python manage.py collectstatic --noinput
 
-.venv/bin/gunicorn config.wsgi --bind 127.0.0.1:8000    # web
-.venv/bin/python manage.py run_checks                   # worker (keep it alive with systemd or supervisor)
+uv run gunicorn config.wsgi --bind 127.0.0.1:8000    # web
+uv run python manage.py run_checks                   # worker (keep it alive with systemd or supervisor)
 ```
-
-- Serve `/static/` from the `staticfiles/` directory with your reverse proxy (nginx, Caddy, ...).
-  The admin theme needs those files.
-- Terminate HTTPS at the proxy and forward to gunicorn.
-- Back up the SQLite file, or point `DATABASES` at PostgreSQL in `config/settings.py` for heavier use.
 
 Example systemd unit for the worker:
 
@@ -158,6 +176,10 @@ ExecStart=/srv/uptime-monitor/.venv/bin/python manage.py run_checks
 Restart=always
 ```
 
+Back up the SQLite file (the `uptime-data` volume with Docker), or point `DATABASES` at PostgreSQL in
+`config/settings.py` for heavier use. The `ping` check needs the `ping` command and permission to send ICMP;
+the Docker image installs it.
+
 ## Security notes
 
 - **Admins decide what the server probes.** Check targets are entered in the admin, and checks run from the
@@ -167,11 +189,13 @@ Restart=always
 - The public page and API intentionally omit everything except name, category, check kind, status, response time
   and uptime percentages. Use the `show on public page` switch to keep a service private.
 - `SECRET_KEY` is mandatory outside `DEBUG`, and the app refuses to start without it.
+- See [SECURITY.md](SECURITY.md) for how to report a vulnerability and a hardening checklist for operators.
 
 ## Development
 
 ```bash
-.venv/bin/python manage.py test
+make test     # run the suite
+make check    # Django system check + "no missing migrations"
 ```
 
 The suite covers each protocol check against local fake servers, validation rules, the worker's cycle, the demo
@@ -179,6 +203,8 @@ seed and the public API, including a test that sensitive values never leak.
 
 ```
 config/                  Django project (settings, urls, wsgi)
+compose.yaml, Dockerfile web + worker containers
+Makefile                 development and Docker shortcuts (run `make help`)
 monitor/
   models.py              Category, Service, CheckResult
   checks.py              one function per check type + run_check()
@@ -198,4 +224,4 @@ An import-time assertion fails if a type has no implementation.
 
 ## License
 
-[MIT](LICENSE) © 2026 Mohammad Zarif
+[MIT](LICENSE) © 2026 Mohammad Zarif. See [CHANGELOG.md](CHANGELOG.md) for release notes.

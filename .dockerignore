@@ -1,0 +1,10 @@
+.git
+.venv
+.idea
+.claude
+.env
+db.sqlite3
+staticfiles
+docs
+__pycache__
+*.pyc

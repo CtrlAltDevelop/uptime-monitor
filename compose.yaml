@@ -1,0 +1,35 @@
+# Two containers share one SQLite volume: `web` serves the site, `worker` runs the health checks.
+x-app: &app
+  build: .
+  image: uptime-monitor:latest
+  env_file: .env
+  environment:
+    DB_PATH: /data/db.sqlite3
+  volumes:
+    - uptime-data:/data
+  restart: unless-stopped
+
+services:
+  web:
+    <<: *app
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             exec gunicorn config.wsgi --bind 0.0.0.0:8000 --workers 2 --access-logfile -"
+    ports:
+      - "${PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/api/status', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  worker:
+    <<: *app
+    command: python manage.py run_checks
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  uptime-data:
