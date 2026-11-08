@@ -1,0 +1,153 @@
+/* Glassmorphism skin for django-unfold (dark). Only visual overrides, no layout changes. */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.055);
+  --glass-strong: rgba(255, 255, 255, 0.09);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --glass-blur: blur(18px) saturate(160%);
+  --ok: #34d399;
+  --bad: #f87171;
+}
+
+/* Aurora background */
+html { background: #0b0d1a !important; }
+body, body.login { background: transparent !important; }
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(900px 600px at 10% 0%, rgba(99, 102, 241, 0.38), transparent 60%),
+    radial-gradient(800px 600px at 95% 15%, rgba(168, 85, 247, 0.28), transparent 60%),
+    radial-gradient(900px 700px at 50% 110%, rgba(14, 165, 233, 0.26), transparent 60%);
+}
+
+/* Transparent shells so the aurora shows through */
+#page, #main, #main.bg-white, #main[class*="dark:bg-base-900"] { background: transparent !important; }
+
+/* Sidebar + header */
+#nav-sidebar, #nav-sidebar > *, #nav-sidebar .bg-base-50 {
+  background: rgba(15, 17, 35, 0.55) !important;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border) !important;
+}
+#header-inner { background: transparent !important; }
+#main > div:first-child:has(#header-inner) {
+  position: sticky;
+  top: 0;
+  background: rgba(15, 17, 35, 0.45) !important;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border) !important;
+}
+
+/* Cards, modules, tables, filters, forms */
+#content .rounded-default.border,
+#content .module,
+#content fieldset,
+#content .bg-white,
+#content [class*="dark:bg-white/"],
+#content .results,
+#changelist-filter,
+#content .inline-group {
+  background: var(--glass-bg) !important;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow);
+}
+#content table, #content tbody tr, #content td { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; }
+#content thead, #content thead th { background: var(--glass-strong) !important; }
+#content tbody tr:hover { background: var(--glass-strong) !important; }
+
+/* Inputs */
+#content input:not([type="checkbox"]):not([type="radio"]),
+#content select,
+#content textarea {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: var(--glass-border) !important;
+}
+#content input:focus, #content select:focus, #content textarea:focus {
+  border-color: rgba(129, 140, 248, 0.8) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Primary buttons glow */
+#content button[type="submit"]:not(#searchbar-submit), #content input[type="submit"], #content a.bg-primary-600 {
+  background: linear-gradient(135deg, #6366f1, #a855f7) !important;
+  border: 0 !important;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+/* Login page: one glass card around the whole form */
+body.login .sm\:w-96 {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  padding: 32px;
+}
+body.login form { background: transparent !important; box-shadow: none !important; border: 0 !important; backdrop-filter: none !important; }
+body.login input { background: rgba(255, 255, 255, 0.06) !important; border-color: var(--glass-border) !important; }
+body.login button[type="submit"] { background: linear-gradient(135deg, #6366f1, #a855f7) !important; }
+
+/* ---- Custom dashboard ---- */
+.glass-dash { display: flex; flex-direction: column; gap: 20px; }
+.glass-card {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  box-shadow: var(--glass-shadow);
+  padding: 18px 20px;
+}
+.glass-card h3 { font-size: 14px; font-weight: 600; opacity: 0.8; margin: 0 0 10px; }
+.glass-banner {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px; border-radius: 18px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.glass-banner small { display: block; opacity: 0.6; margin-top: 2px; }
+.glass-banner.is-up { background: rgba(52, 211, 153, 0.14); border-color: rgba(52, 211, 153, 0.4); }
+.glass-banner.is-up .material-symbols-outlined { color: var(--ok); }
+.glass-banner.is-down { background: rgba(248, 113, 113, 0.16); border-color: rgba(248, 113, 113, 0.45); }
+.glass-banner.is-down .material-symbols-outlined { color: var(--bad); }
+.glass-banner .material-symbols-outlined { font-size: 30px; }
+.glass-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+.glass-stats .glass-card span { display: block; font-size: 13px; opacity: 0.65; }
+.glass-stats .glass-card b { display: block; font-size: 30px; font-weight: 700; margin-top: 4px; }
+.glass-stats .ok b { color: var(--ok); }
+.glass-stats .bad b { color: var(--bad); }
+.glass-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.glass-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 4px; border-top: 1px solid var(--glass-border); text-decoration: none; color: inherit;
+}
+.glass-row:first-of-type { border-top: 0; }
+.glass-row:hover { background: var(--glass-strong); border-radius: 10px; }
+.glass-row small { margin-inline-start: auto; opacity: 0.55; font-size: 12px; }
+.glass-row .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.glass-row .dot.bad { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
+.glass-empty { opacity: 0.6; margin: 6px 0 0; }
+
+/* Avoid stacking glass on glass (module wrapper + inner results box) */
+#content .module.filtered { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border: 0 !important; }
+
+/* Search box: the wrapper is the glass pill, the input itself must not paint a second box */
+#changelist-search input#searchbar { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+#changelist-search .relative, #changelist-search form > div { background: var(--glass-bg) !important; border-color: var(--glass-border) !important; border-radius: 12px; }
+
+/* Forms: fieldset wrapper must not add a second glass layer behind its inner card */
+#content fieldset.module, #content fieldset { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border: 0 !important; }
+
+/* List and form pages: stacked backdrop blurs (sticky header + footer + table cards) make Chrome skip painting
+   table rows. Keep the translucent glass fill there, but blur only on the dashboard, sidebar and login. */
+body:not(.dashboard):not(.login) #main * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+body:not(.dashboard):not(.login) #main > div:first-child:has(#header-inner) { background: rgba(15, 17, 35, 0.82) !important; }

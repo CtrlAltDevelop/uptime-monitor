@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Service status</title>
+<style>
+  /* Everything is sized in rem; the root font-size scales with the screen so the layout looks the same
+     on a laptop and on a 4K TV. min(vw, vh) keeps all tiles on one screen at any aspect ratio. */
+  html { font-size: clamp(11px, min(1.02vw, 1.62vh), 64px); background: #0b0d1a; }
+  :root {
+    --text: #eef0ff; --muted: rgba(238, 240, 255, .66);
+    --glass: rgba(255, 255, 255, .06); --glass-hi: rgba(255, 255, 255, .11); --edge: rgba(255, 255, 255, .16);
+    --up: #34d399; --warn: #fbbf24; --down: #f87171; --none: rgba(255, 255, 255, .14);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; overflow: hidden; color: var(--text);
+    font: 1rem/1.35 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(60rem 40rem at 8% -5%, rgba(99, 102, 241, .42), transparent 60%),
+      radial-gradient(55rem 40rem at 98% 10%, rgba(168, 85, 247, .30), transparent 60%),
+      radial-gradient(60rem 45rem at 50% 115%, rgba(14, 165, 233, .28), transparent 60%),
+      #0b0d1a;
+  }
+  main { height: 100%; display: flex; flex-direction: column; gap: .7rem; padding: .8rem 1rem .6rem; }
+  .glass {
+    background: var(--glass); border: 1px solid var(--edge); border-radius: 1.1rem;
+    -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 .5rem 1.8rem rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .08);
+  }
+
+  /* Top bar */
+  .top { display: flex; align-items: center; gap: 1.2rem; padding: .6rem 1.1rem; flex: none; }
+  .brand { display: flex; align-items: center; gap: .7rem; font-weight: 700; font-size: 1.25rem; }
+  .logo { width: 2.3rem; height: 2.3rem; border-radius: .7rem; display: grid; place-items: center;
+    background: linear-gradient(135deg, #6366f1, #a855f7); box-shadow: 0 .3rem 1rem rgba(99, 102, 241, .5); }
+  .logo svg { width: 1.2rem; height: 1.2rem; stroke: #fff; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .overall { display: flex; align-items: center; gap: .65rem; padding: .35rem 1rem; border-radius: 999px;
+    border: 1px solid var(--edge); background: var(--glass-hi); font-weight: 600; font-size: 1.1rem; }
+  .overall.up { background: rgba(52, 211, 153, .13); border-color: rgba(52, 211, 153, .45); --c: 52, 211, 153; }
+  .overall.degraded { background: rgba(248, 113, 113, .14); border-color: rgba(248, 113, 113, .5); --c: 248, 113, 113; }
+  .pulse { width: .75rem; height: .75rem; border-radius: 50%; background: var(--none); }
+  .up .pulse { background: var(--up); animation: pulse 2s infinite; }
+  .degraded .pulse { background: var(--down); animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(var(--c), .6); } 100% { box-shadow: 0 0 0 .8rem rgba(var(--c), 0); } }
+  .counts { display: flex; gap: .55rem; margin-inline-start: auto; align-items: center; color: var(--muted); font-size: .95rem; }
+  .chip { padding: .2rem .7rem; border-radius: 999px; border: 1px solid var(--edge); background: var(--glass); white-space: nowrap; }
+  .chip b { color: var(--text); font-size: 1.05em; }
+  .chip.ok b { color: var(--up); } .chip.bad b { color: var(--down); }
+
+  /* Grid fills the remaining screen: columns ~20rem, rows share the leftover height equally */
+  #grid { flex: 1; min-height: 0; display: grid; gap: .6rem;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); grid-auto-rows: 1fr; }
+  .tile { padding: .35rem .85rem .4rem; border-radius: .95rem; min-width: 0; min-height: 0;
+    display: flex; flex-direction: column; justify-content: center; }
+  .tile.down { border-color: rgba(248, 113, 113, .6); background: rgba(248, 113, 113, .12); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+  .name { display: flex; align-items: center; gap: .55rem; font-weight: 600; font-size: 1.15rem; min-width: 0; }
+  .name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dot { width: .7rem; height: .7rem; border-radius: 50%; flex: none; background: var(--none); }
+  .dot.up { background: var(--up); box-shadow: 0 0 .6rem var(--up); }
+  .dot.down { background: var(--down); box-shadow: 0 0 .6rem var(--down); }
+  .pct { font-variant-numeric: tabular-nums; font-size: .95rem; color: var(--muted); flex: none; }
+  .tile.down .pct { color: var(--down); font-weight: 700; }
+  .meta { display: flex; justify-content: space-between; align-items: center; margin-top: .1rem; color: var(--muted); font-size: .85rem; }
+  .meta .l { display: flex; align-items: center; gap: .45rem; min-width: 0; }
+  .meta .l span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kind { font-size: .7rem; font-weight: 700; letter-spacing: .06em; padding: .05rem .45rem; border-radius: .4rem;
+    background: var(--glass-hi); border: 1px solid var(--edge); color: var(--text); flex: none; }
+  .meta .r { font-variant-numeric: tabular-nums; flex: none; }
+  .bars { display: flex; gap: .15rem; margin-top: .4rem; }
+  .bars i { flex: 1; height: .55rem; border-radius: .2rem; background: var(--none); }
+  .bars i.g { background: var(--up); } .bars i.y { background: var(--warn); } .bars i.r { background: var(--down); }
+  .note { flex: none; text-align: center; color: var(--muted); font-size: .75rem; }
+</style>
+</head>
+<body>
+<main>
+  <div class="glass top">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div>
+      Service status
+    </div>
+    <div id="overall" class="overall"><span class="pulse"></span><span id="overall-text">Loading…</span></div>
+    <div class="counts" id="counts"></div>
+  </div>
+  <div id="grid"></div>
+  <div class="note">Bars: last 30 days, one per day · green ≥ 99.9% · amber ≥ 95% · red below · double-click for full screen</div>
+</main>
+<script>
+const num = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+const OVERALL = { up: "All systems operational", degraded: "Some services are down", unknown: "No data yet" };
+const RANK = { down: 0, unknown: 1, up: 2 };
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function barClass(p) { return p === null ? "" : p >= 99.9 ? "g" : p >= 95 ? "y" : "r"; }
+function ago(iso) {
+  if (!iso) return "never";
+  const s = Math.max(0, Math.round((Date.now() - new Date(iso)) / 1000));
+  return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + "m ago" : Math.round(s / 3600) + "h ago";
+}
+function chip(label, value, cls) {
+  const c = el("span", "chip " + (cls || ""));
+  c.append(el("b", "", value), " " + label);
+  return c;
+}
+
+function render(data) {
+  const services = data.categories.flatMap(c => c.services.map(s => ({ ...s, category: c.name })));
+  services.sort((a, b) => RANK[a.status] - RANK[b.status]);   // problems first, then catalog order
+  const down = services.filter(s => s.status === "down").length;
+  const up = services.filter(s => s.status === "up").length;
+  const ms = services.map(s => s.latency_ms).filter(v => v !== null);
+  const avgMs = ms.length ? Math.round(ms.reduce((a, b) => a + b, 0) / ms.length) : null;
+  const ups = services.map(s => s.uptime_30d).filter(v => v !== null);
+  const avgUp = ups.length ? ups.reduce((a, b) => a + b, 0) / ups.length : null;
+
+  document.getElementById("overall").className = "overall " + data.overall;
+  document.getElementById("overall-text").textContent = OVERALL[data.overall];
+  document.getElementById("counts").replaceChildren(
+    chip("up", up, "ok"), chip("down", down, down ? "bad" : ""), chip("total", services.length),
+    chip("avg uptime 30d", avgUp === null ? "—" : num.format(avgUp) + "%"),
+    chip("avg response", avgMs === null ? "—" : avgMs + " ms"),
+    el("span", "", "Updated " + new Date(data.updated_at).toLocaleTimeString("en-US")),
+  );
+
+  const grid = document.getElementById("grid");
+  grid.replaceChildren();
+  for (const s of services) {
+    const tile = el("div", "glass tile " + s.status);
+    const top = el("div", "row");
+    const name = el("div", "name");
+    name.append(el("span", "dot " + s.status), el("span", "", s.name));
+    const pct = s.status === "down" ? "DOWN" : s.uptime_30d === null ? "—" : num.format(s.uptime_30d) + "%";
+    top.append(name, el("span", "pct", pct));
+    const meta = el("div", "meta");
+    const left = el("div", "l");
+    left.append(el("span", "kind", s.kind), el("span", "", s.category));
+    const rt = s.latency_ms === null ? "" : (s.latency_ms >= 1000 ? num.format(s.latency_ms / 1000) + " s" : Math.round(s.latency_ms) + " ms") + " · ";
+    meta.append(left, el("span", "r", rt + ago(s.last_checked)));
+    tile.title = s.name + " — 30-day uptime " + (s.uptime_30d === null ? "n/a" : num.format(s.uptime_30d) + "%");
+    const bars = el("div", "bars");
+    for (const d of s.days) {
+      const b = el("i", barClass(d.uptime));
+      b.title = d.date + (d.uptime === null ? " — no data" : " — " + d.uptime + "%");
+      bars.append(b);
+    }
+    tile.append(top, meta, bars);
+    grid.append(tile);
+  }
+}
+
+async function load() {
+  try {
+    const r = await fetch("/api/status");
+    if (!r.ok) throw new Error(r.status);
+    render(await r.json());
+  } catch (e) {
+    document.getElementById("overall-text").textContent = "Could not load status";
+  }
+}
+load();
+setInterval(load, 30000);
+
+// TV mode: double-click toggles full screen
+document.addEventListener("dblclick", () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen?.();
+});
+</script>
+</body>
+</html>

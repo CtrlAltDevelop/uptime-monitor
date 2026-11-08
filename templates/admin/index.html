@@ -1,0 +1,52 @@
+{% extends 'admin/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="glass-dash">
+  <div class="glass-banner {% if stats.down %}is-down{% elif stats.up %}is-up{% endif %}">
+    <span class="material-symbols-outlined">{% if stats.down %}warning{% else %}check_circle{% endif %}</span>
+    <div>
+      <strong>{% if stats.down %}{{ stats.down }} service{{ stats.down|pluralize }} down{% elif stats.up %}All services are operational{% else %}No results recorded yet{% endif %}</strong>
+      <small>Results are recorded while the <code>manage.py run_checks</code> worker is running.</small>
+    </div>
+  </div>
+
+  <div class="glass-stats">
+    <div class="glass-card"><span>Active services</span><b>{{ stats.total }}</b></div>
+    <div class="glass-card ok"><span>Up</span><b>{{ stats.up }}</b></div>
+    <div class="glass-card bad"><span>Down</span><b>{{ stats.down }}</b></div>
+    <div class="glass-card"><span>24h uptime</span><b>{% if stats.uptime_24h is None %}—{% else %}{{ stats.uptime_24h }}%{% endif %}</b></div>
+  </div>
+
+  <div class="glass-cols">
+    <section class="glass-card">
+      <h3>Services down</h3>
+      {% for s in down_services %}
+        <a class="glass-row" href="{% url 'admin:monitor_service_change' s.pk %}">
+          <span class="dot bad"></span><span>{{ s.name }}</span><small>{{ s.category }}</small>
+        </a>
+      {% empty %}
+        <p class="glass-empty">Everything is fine ✓</p>
+      {% endfor %}
+    </section>
+
+    <section class="glass-card">
+      <h3>Recent failures</h3>
+      {% for r in recent_failures %}
+        <a class="glass-row" href="{% url 'admin:monitor_service_change' r.service_id %}">
+          <span class="dot bad"></span><span>{{ r.service.name }}</span>
+          <small>{{ r.checked_at|date:"Y/m/d H:i:s" }} · {{ r.detail|default:"—" }}</small>
+        </a>
+      {% empty %}
+        <p class="glass-empty">No failures recorded</p>
+      {% endfor %}
+    </section>
+  </div>
+</div>
+{% endblock %}
