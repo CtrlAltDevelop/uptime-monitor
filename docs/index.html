@@ -61,6 +61,12 @@
   .shots img { width:100%; height:auto; display:block; border-radius:.6rem; }
   .shots figcaption { padding:.5rem .3rem .2rem; color:var(--muted); font-size:.9rem; }
   pre { margin:0; padding:1.2rem 1.4rem; overflow-x:auto; font:.9rem/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .frame img { display:none; width:100%; height:auto; border-radius:.7rem; }
+  @media (max-width:700px) {
+    nav a:not(:last-child) { display:none; }   /* keep just the GitHub link */
+    .frame iframe { display:none; }            /* the TV-style grid needs width; show the screenshot instead */
+    .frame img { display:block; }
+  }
   footer { padding:2.5rem 0 3rem; text-align:center; color:var(--muted); font-size:.9rem; }
 </style>
 </head>
@@ -84,6 +90,7 @@
     <div class="glass frame">
       <div class="bar"><b></b><b></b><b></b>&nbsp;status page, demo snapshot</div>
       <iframe src="demo/" title="Uptime Monitor live demo" loading="lazy"></iframe>
+      <img src="screenshots/public-dashboard.png" alt="Public status page">
     </div>
     <p class="caption">A static snapshot of the real status page, seeded with 30 days of realistic history. Four services are down on purpose.</p>
   </header>
