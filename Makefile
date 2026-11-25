@@ -4,7 +4,7 @@ PROD := docker compose -f compose.yaml -f compose.production.yaml
 
 .PHONY: help install env migrate superuser seed run worker check-once test check static \
         build up down logs docker-superuser docker-seed \
-        seed-realistic prod-env prod-up prod-down prod-logs prod-ps prod-superuser prod-seed
+        seed-realistic demo-site prod-env prod-up prod-down prod-logs prod-ps prod-superuser prod-seed
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -30,6 +30,9 @@ worker: ## Run the background health-check worker
 
 seed-realistic: ## Demo services + 30 days of realistic history (replaces results)
 	$(DJ) seed_realistic
+
+demo-site: ## Rebuild the static live demo in docs/demo/ for GitHub Pages
+	./scripts/build_demo.sh
 
 check-once: ## Check every active service once and exit
 	$(DJ) run_checks --once
