@@ -46,7 +46,9 @@
   .frame { margin:3rem 0 1rem; padding:.5rem; overflow:hidden; }
   .frame .bar { display:flex; gap:.4rem; padding:.35rem .6rem .6rem; align-items:center; color:var(--muted); font-size:.8rem; }
   .frame .bar b { width:.65rem; height:.65rem; border-radius:50%; background:var(--edge); }
-  .frame iframe { display:block; width:100%; aspect-ratio:16/9; border:0; border-radius:.7rem; background:#0b0d1a; }
+  /* The status page is laid out for a 1080p screen: render it at 1920x1080 and scale to fit. */
+  .viewport { position:relative; aspect-ratio:16/9; overflow:hidden; border-radius:.7rem; background:#0b0d1a; }
+  .viewport iframe { position:absolute; top:0; left:0; width:1920px; height:1080px; border:0; transform-origin:0 0; }
   .caption { text-align:center; color:var(--muted); font-size:.9rem; margin:0 0 3rem; }
   section { padding:2.5rem 0; }
   h2 { font-size:1.8rem; margin:0 0 1.5rem; letter-spacing:-.01em; }
@@ -64,7 +66,7 @@
   .frame img { display:none; width:100%; height:auto; border-radius:.7rem; }
   @media (max-width:700px) {
     nav a:not(:last-child) { display:none; }   /* keep just the GitHub link */
-    .frame iframe { display:none; }            /* the TV-style grid needs width; show the screenshot instead */
+    .viewport { display:none; }                /* the TV-style grid needs width; show the screenshot instead */
     .frame img { display:block; }
   }
   footer { padding:2.5rem 0 3rem; text-align:center; color:var(--muted); font-size:.9rem; }
@@ -89,7 +91,7 @@
     </div>
     <div class="glass frame">
       <div class="bar"><b></b><b></b><b></b>&nbsp;status page, demo snapshot</div>
-      <iframe src="demo/" title="Uptime Monitor live demo" loading="lazy"></iframe>
+      <div class="viewport"><iframe src="demo/" title="Uptime Monitor live demo" loading="lazy"></iframe></div>
       <img src="screenshots/public-dashboard.png" alt="Public status page">
     </div>
     <p class="caption">A static snapshot of the real status page, seeded with 30 days of realistic history. Four services are down on purpose.</p>
@@ -139,5 +141,10 @@ make seed-realistic   # optional: demo data with 30 days of history</pre></div>
   <footer>MIT licensed · © 2026 Mohammad Zarif · <a href="https://github.com/CtrlAltDevelop/uptime-monitor">Source</a> ·
     <a href="https://github.com/CtrlAltDevelop/uptime-monitor/blob/main/CHANGELOG.md">Changelog</a></footer>
 </div>
+<script>
+  const frame = document.querySelector(".viewport iframe");
+  const fit = () => { frame.style.transform = "scale(" + frame.parentElement.clientWidth / 1920 + ")"; };
+  new ResizeObserver(fit).observe(frame.parentElement);
+</script>
 </body>
 </html>
