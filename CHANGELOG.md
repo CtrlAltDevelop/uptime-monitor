@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-11-08
+## [1.0.0] - 2026-11-25
 
 First stable release. Everything under 0.1.0 plus the following.
 
@@ -24,12 +24,20 @@ First stable release. Everything under 0.1.0 plus the following.
 - PostgreSQL support (`POSTGRES_HOST` and friends) and an `HTTPS=1` mode for running behind a TLS proxy.
 - `manage.py seed_realistic`: demo services plus 30 days of realistic history with outages, flaky services and
   four that are really failing. Only demo services are touched.
+- Project site on GitHub Pages (`docs/index.html`) with a Three.js hero, feature overview, screenshots and a quick
+  start: <https://ctrlaltdevelop.github.io/uptime-monitor/>.
+- Static live demo (`docs/demo/`): the real status page reading a seeded `/api/status` snapshot. Rebuild it with
+  `make demo-site` (`scripts/build_demo.sh`).
+- GitHub Actions: CI runs `make check` and `make test` on pull requests into `main`; the Pages workflow deploys
+  `docs/` only from `main`.
 
 ### Fixed
 - The container health check now sends a valid `Host` header, so `web` becomes healthy when `ALLOWED_HOSTS` lists
   only a real domain (previously Django answered 400 and the stack never came up).
 
 ### Changed
+- The public status page is responsive: below 700 px it becomes a normal scrolling, one-column page. The
+  full-screen TV layout is unchanged.
 - Dependencies are managed with [uv](https://docs.astral.sh/uv/): `pyproject.toml` and `uv.lock` replace
   `requirements.txt`.
 
