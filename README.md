@@ -267,4 +267,4 @@ An import-time assertion fails if a type has no implementation.
 
 ## License
 
-[MIT](LICENSE) © 2026 Mohammad Zarif. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+[AGPL-3.0-only](LICENSE) © 2026 Mohammad Zarif. See [CHANGELOG.md](CHANGELOG.md) for release notes.
