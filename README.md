@@ -5,6 +5,8 @@ Define services in the admin, choose how each one is health-checked, and a backg
 results. A public, TV-friendly status page shows only what matters: **is it up, and for how long**. No hosts,
 ports or error messages are ever exposed.
 
+**[Live demo and project page](https://ctrlaltdevelop.github.io/uptime-monitor/)** (static snapshot, rebuilt with `make demo-site`)
+
 ![Public status page](docs/screenshots/public-dashboard.png)
 
 ## Features

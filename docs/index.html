@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="A small, self-hosted uptime monitor built with Django, Django Ninja and the Unfold admin. 11 check types, a TV-friendly public status page and a JSON API.">
+<meta property="og:title" content="Uptime Monitor">
+<meta property="og:description" content="Self-hosted uptime monitoring with a glass status page. Is it up, and for how long.">
+<meta property="og:image" content="https://ctrlaltdevelop.github.io/uptime-monitor/screenshots/public-dashboard.png">
+<title>Uptime Monitor</title>
+<style>
+  :root { --text:#eef0ff; --muted:rgba(238,240,255,.68); --glass:rgba(255,255,255,.06); --edge:rgba(255,255,255,.16);
+    --up:#34d399; --accent:#818cf8; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; background:#0b0d1a; }
+  body { margin:0; color:var(--text); font:1rem/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(60rem 40rem at 8% -5%,rgba(99,102,241,.42),transparent 60%),
+      radial-gradient(55rem 40rem at 98% 8%,rgba(168,85,247,.30),transparent 60%),
+      radial-gradient(60rem 45rem at 50% 100%,rgba(14,165,233,.22),transparent 60%),#0b0d1a;
+    background-attachment:fixed; }
+  a { color:var(--accent); }
+  .wrap { max-width:68rem; margin:0 auto; padding:0 1.25rem; }
+  .glass { background:var(--glass); border:1px solid var(--edge); border-radius:1.1rem;
+    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+    box-shadow:0 .5rem 1.8rem rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.08); }
+  nav { display:flex; align-items:center; gap:1.25rem; padding:1.1rem 0; }
+  .brand { display:flex; align-items:center; gap:.7rem; font-weight:700; font-size:1.15rem; margin-right:auto; }
+  .logo { width:2.2rem; height:2.2rem; border-radius:.7rem; display:grid; place-items:center;
+    background:linear-gradient(135deg,#6366f1,#a855f7); box-shadow:0 .3rem 1rem rgba(99,102,241,.5); }
+  .logo svg { width:1.15rem; height:1.15rem; stroke:#fff; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  nav a { color:var(--muted); text-decoration:none; font-size:.95rem; }
+  nav a:hover { color:var(--text); }
+  .hero { text-align:center; padding:4rem 0 2rem; }
+  .pill { display:inline-flex; align-items:center; gap:.55rem; padding:.3rem .9rem; border-radius:999px; font-size:.9rem; font-weight:600;
+    background:rgba(52,211,153,.13); border:1px solid rgba(52,211,153,.45); }
+  .pill i { width:.6rem; height:.6rem; border-radius:50%; background:var(--up); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(52,211,153,.6)} 100%{box-shadow:0 0 0 .7rem rgba(52,211,153,0)} }
+  h1 { font-size:clamp(2.2rem,6vw,3.9rem); line-height:1.1; margin:1.2rem 0 1rem; letter-spacing:-.02em; }
+  h1 span { background:linear-gradient(135deg,#a5b4fc,#e879f9); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead { max-width:40rem; margin:0 auto 2rem; color:var(--muted); font-size:1.15rem; }
+  .cta { display:flex; flex-wrap:wrap; gap:.8rem; justify-content:center; }
+  .btn { padding:.7rem 1.4rem; border-radius:.8rem; font-weight:600; text-decoration:none; border:1px solid var(--edge); color:var(--text); background:var(--glass); }
+  .btn.primary { background:linear-gradient(135deg,#6366f1,#a855f7); border-color:transparent; box-shadow:0 .4rem 1.4rem rgba(99,102,241,.45); }
+  .btn:hover { filter:brightness(1.15); }
+  .frame { margin:3rem 0 1rem; padding:.5rem; overflow:hidden; }
+  .frame .bar { display:flex; gap:.4rem; padding:.35rem .6rem .6rem; align-items:center; color:var(--muted); font-size:.8rem; }
+  .frame .bar b { width:.65rem; height:.65rem; border-radius:50%; background:var(--edge); }
+  .frame iframe { display:block; width:100%; aspect-ratio:16/9; border:0; border-radius:.7rem; background:#0b0d1a; }
+  .caption { text-align:center; color:var(--muted); font-size:.9rem; margin:0 0 3rem; }
+  section { padding:2.5rem 0; }
+  h2 { font-size:1.8rem; margin:0 0 1.5rem; letter-spacing:-.01em; }
+  .grid { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); }
+  .card { padding:1.3rem; }
+  .card h3 { margin:0 0 .4rem; font-size:1.05rem; }
+  .card p { margin:0; color:var(--muted); font-size:.95rem; }
+  .tags { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .tags code { padding:.25rem .7rem; border-radius:999px; border:1px solid var(--edge); background:var(--glass); font-size:.88rem; }
+  .shots { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(20rem,1fr)); }
+  .shots figure { margin:0; padding:.5rem; }
+  .shots img { width:100%; height:auto; display:block; border-radius:.6rem; }
+  .shots figcaption { padding:.5rem .3rem .2rem; color:var(--muted); font-size:.9rem; }
+  pre { margin:0; padding:1.2rem 1.4rem; overflow-x:auto; font:.9rem/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; }
+  footer { padding:2.5rem 0 3rem; text-align:center; color:var(--muted); font-size:.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="brand"><div class="logo"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div>Uptime Monitor</div>
+    <a href="#features">Features</a><a href="#checks">Checks</a><a href="#screens">Screenshots</a><a href="#start">Quick start</a>
+    <a href="https://github.com/CtrlAltDevelop/uptime-monitor">GitHub</a>
+  </nav>
+
+  <header class="hero">
+    <span class="pill"><i></i>Is it up, and for how long</span>
+    <h1>Self-hosted uptime monitoring with a <span>glass status page</span></h1>
+    <p class="lead">Define services in the admin, pick how each is health-checked, and a background worker records the results.
+      A TV-friendly public page shows only what matters. No hosts, ports or error messages are ever exposed.</p>
+    <div class="cta">
+      <a class="btn primary" href="demo/">Open live demo</a>
+      <a class="btn" href="https://github.com/CtrlAltDevelop/uptime-monitor">View on GitHub</a>
+    </div>
+    <div class="glass frame">
+      <div class="bar"><b></b><b></b><b></b>&nbsp;status page, demo snapshot</div>
+      <iframe src="demo/" title="Uptime Monitor live demo" loading="lazy"></iframe>
+    </div>
+    <p class="caption">A static snapshot of the real status page, seeded with 30 days of realistic history. Four services are down on purpose.</p>
+  </header>
+
+  <section id="features">
+    <h2>Features</h2>
+    <div class="grid">
+      <div class="glass card"><h3>11 check types</h3><p>Ping, TCP, HTTP status and keyword, DNS, SSL expiry, SSH, SMTP, Redis, PostgreSQL and MySQL.</p></div>
+      <div class="glass card"><h3>Public status page</h3><p>A grid that scales so every service fits on a TV. Problems sort first, 30-day history bars, self-refreshing.</p></div>
+      <div class="glass card"><h3>Public JSON API</h3><p><code>/api/status</code> serves the same data, cached for 15 seconds, with nothing sensitive in it.</p></div>
+      <div class="glass card"><h3>Modern admin</h3><p>Unfold theme with a glass skin, live counters, recent failures, badges, search and filters.</p></div>
+      <div class="glass card"><h3>Background worker</h3><p>Per-service interval and timeout, parallel checks, automatic pruning of old results.</p></div>
+      <div class="glass card"><h3>Safe by default</h3><p>Targets, ports and errors never leave the server. A per-service switch hides it from the public page.</p></div>
+    </div>
+  </section>
+
+  <section id="checks">
+    <h2>Check types</h2>
+    <div class="tags">
+      <code>ping</code><code>tcp</code><code>http</code><code>http_keyword</code><code>dns</code><code>ssl_cert</code>
+      <code>ssh</code><code>smtp</code><code>redis</code><code>postgres</code><code>mysql</code>
+    </div>
+  </section>
+
+  <section id="screens">
+    <h2>Screenshots</h2>
+    <div class="shots">
+      <figure class="glass"><img loading="lazy" src="screenshots/admin-dashboard.png" alt="Admin dashboard"><figcaption>Admin dashboard</figcaption></figure>
+      <figure class="glass"><img loading="lazy" src="screenshots/admin-services.png" alt="Services list"><figcaption>Services</figcaption></figure>
+      <figure class="glass"><img loading="lazy" src="screenshots/admin-service-form.png" alt="Add a service"><figcaption>Add a service</figcaption></figure>
+      <figure class="glass"><img loading="lazy" src="screenshots/public-dashboard.png" alt="Public status page"><figcaption>Public status page</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="start">
+    <h2>Quick start</h2>
+    <div class="glass"><pre>git clone https://github.com/CtrlAltDevelop/uptime-monitor && cd uptime-monitor
+make up               # build and start web + worker with Docker
+make docker-superuser # create your admin login
+make seed-realistic   # optional: demo data with 30 days of history</pre></div>
+    <p style="color:var(--muted)">Then open <code>http://localhost:8000/</code> for the status page and <code>/admin/</code> for the admin.
+      A production-like stack with PostgreSQL and automatic HTTPS is included: see the
+      <a href="https://github.com/CtrlAltDevelop/uptime-monitor#production-like-stack-postgresql--https">README</a>.</p>
+  </section>
+
+  <footer>MIT licensed · © 2026 Mohammad Zarif · <a href="https://github.com/CtrlAltDevelop/uptime-monitor">Source</a> ·
+    <a href="https://github.com/CtrlAltDevelop/uptime-monitor/blob/main/CHANGELOG.md">Changelog</a></footer>
+</div>
+</body>
+</html>
