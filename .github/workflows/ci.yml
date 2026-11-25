@@ -5,15 +5,18 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-      - run: uv sync
-      - run: make check
-      - run: make test
+    name: Test
+    uses: CtrlAltDevelop/ci-workflows/.github/workflows/python-test.yml@v1.2.0
+    permissions:
+      contents: read
+    with:
+      install: uv sync
+      test-command: make check && make test

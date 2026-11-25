@@ -1,5 +1,16 @@
 # Uptime Monitor
 
+[![CI](https://github.com/CtrlAltDevelop/uptime-monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlAltDevelop/uptime-monitor/actions/workflows/ci.yml)
+[![Deploy GitHub Pages](https://github.com/CtrlAltDevelop/uptime-monitor/actions/workflows/pages.yml/badge.svg)](https://github.com/CtrlAltDevelop/uptime-monitor/actions/workflows/pages.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-5.x-092E20?logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![Django Ninja](https://img.shields.io/badge/Django%20Ninja-1.x-00B8A9)](https://django-ninja.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://ctrlaltdevelop.github.io/uptime-monitor/)
+[![Last commit](https://img.shields.io/github/last-commit/CtrlAltDevelop/uptime-monitor)](https://github.com/CtrlAltDevelop/uptime-monitor/commits)
+
 A small, self-hosted uptime monitor built with **Django**, **Django Ninja** and the **Unfold** admin.
 Define services in the admin, choose how each one is health-checked, and a background worker records the
 results. A public, TV-friendly status page shows only what matters: **is it up, and for how long**. No hosts,
@@ -267,4 +278,4 @@ An import-time assertion fails if a type has no implementation.
 
 ## License
 
-[MIT](LICENSE) © 2026 Mohammad Zarif. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+[AGPL-3.0-only](LICENSE) © 2026 Mohammad Zarif. See [CHANGELOG.md](CHANGELOG.md) for release notes.

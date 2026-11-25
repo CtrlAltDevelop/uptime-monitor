@@ -1,9 +1,9 @@
 [project]
 name = "uptime-monitor"
-version = "1.0.0"
+version = "1.0.1"
 description = "Self-hosted uptime monitor: Django, Django Ninja and a glass-style Unfold admin."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "AGPL-3.0-only"
 requires-python = ">=3.10"
 dependencies = [
     "django>=5.1,<6",

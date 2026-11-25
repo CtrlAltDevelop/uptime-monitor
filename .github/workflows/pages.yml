@@ -2,7 +2,8 @@ name: Deploy GitHub Pages
 
 # Publishes only on main, i.e. after a PR into main is merged (nothing deploys from develop or from open PRs).
 on:
-  push:
+  pull_request_target:
+    types: [closed]
     branches: [main]
     paths: [docs/**, .github/workflows/pages.yml]
   workflow_dispatch:
@@ -18,12 +19,15 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

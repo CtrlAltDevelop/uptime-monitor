@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-25
+
+### Changed
+- Relicensed from MIT to the GNU Affero General Public License v3.0 only (`AGPL-3.0-only`). Releases up to and
+  including 1.0.0 remain available under the MIT license.
+- CI runs the tests through the reusable workflows in `CtrlAltDevelop/ci-workflows`, and GitHub Pages deploys after a
+  merged pull request.
+
+### Added
+- README badges for CI, Pages deployment, license, stack, live demo and last commit.
+- `AGENTS.md` with the project instructions for contributors and AI agents.
+
 ## [1.0.0] - 2026-11-25
 
 First stable release. Everything under 0.1.0 plus the following.
